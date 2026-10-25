@@ -181,6 +181,12 @@ impl Worker {
         };
 
         let authorized = query_value(&request.query, "k").as_deref() == Some(self.token.as_str());
+        note(&format!(
+            "panel: {} {} body={} auth={authorized}",
+            request.method,
+            request.path,
+            request.body.len()
+        ));
         match (request.method.as_str(), request.path.as_str()) {
             ("GET", "/") if authorized => respond(
                 &mut stream,
