@@ -827,6 +827,7 @@ fn a_notice_does_not_escape_modal_focus_and_closing_restores_the_app() {
     let mut state = ready();
     state.open(1);
     state.notify("Saved");
+    state.preferences.favorites = Some(vec!["netflix".into()]);
     state.focus = Target::App("netflix".into());
     state.options();
     assert!(
@@ -834,9 +835,9 @@ fn a_notice_does_not_escape_modal_focus_and_closing_restores_the_app() {
             .iter()
             .all(|c| matches!(c.target, Target::Option(_) | Target::CloseDialog))
     );
-    state.focus = Target::Option(1);
+    state.focus = Target::Option(3);
     state.direction(Direction::Down, &controls(&state));
-    assert_eq!(state.focus, Target::Option(1));
+    assert_eq!(state.focus, Target::Option(3));
     state.back();
     assert_eq!(state.focus, Target::App("netflix".into()));
 }
