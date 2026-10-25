@@ -748,6 +748,8 @@ fn system_category_owns_refresh_and_quit_and_restores_sidebar_focus() {
     assert_eq!(state.focus, Target::Setting(3));
     assert_eq!(state.activate(), vec![Effect::Reload]);
     state.direction(Direction::Down, &controls(&state));
+    assert_eq!(state.focus, Target::Setting(7));
+    state.direction(Direction::Down, &controls(&state));
     assert_eq!(state.focus, Target::Setting(5));
     assert_eq!(state.activate(), vec![Effect::Quit]);
     state.back();

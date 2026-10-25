@@ -1761,16 +1761,24 @@
   },
   "webPanel": {
     "en": "Web panel (QR)",
-    "es": "Panel web (QR)",
     "de": "Web-Panel (QR)",
+    "es": "Panel web (QR)",
+    "zh": "网页面板 (QR)",
     "pt": "Painel web (QR)",
-    "it": "Pannello web (QR)"
+    "it": "Pannello web (QR)",
+    "ru": "Веб-панель (QR)",
+    "pl": "Panel web (QR)",
+    "fr": "Panneau web (QR)"
   },
   "webPanelHint": {
-    "en": "Scan the QR or open the URL on your phone/PC to choose Home apps and set a wallpaper (URL or upload). The server closes itself after 10 minutes idle.",
-    "es": "Escanea el QR o abre la URL en tu movil/PC para elegir las apps del inicio y poner un fondo (URL o subiendo un archivo). El servidor se cierra solo tras 10 minutos sin uso.",
-    "de": "QR scannen oder URL am Handy/PC oeffnen, um Home-Apps zu waehlen und ein Hintergrundbild zu setzen. Der Server beendet sich nach 10 Minuten ohne Zugriff.",
-    "pt": "Escaneie o QR ou abra a URL no celular/PC para escolher apps da Home e definir um fundo. O servidor fecha apos 10 minutos sem uso.",
-    "it": "Scansiona il QR o apri l'URL da telefono/PC per scegliere le app della Home e impostare uno sfondo. Il server si chiude dopo 10 minuti di inattivita."
+    "en": "Scan the QR or open the URL on your phone or PC to choose Home apps and set a wallpaper (URL or upload). The server closes itself after 10 minutes idle.",
+    "de": "QR scannen oder die URL am Handy oder PC oeffnen, um Home-Apps zu waehlen und ein Hintergrundbild zu setzen (URL oder Upload). Der Server beendet sich nach 10 Minuten ohne Zugriff.",
+    "es": "Escanea el QR o abre la URL en tu movil o PC para elegir las apps del inicio y poner un fondo (URL o subiendo un archivo). El servidor se cierra solo tras 10 minutos sin uso.",
+    "zh": "扫描二维码或在手机、电脑上打开网址，选择首页应用并设置壁纸（链接或上传）。服务器在闲置 10 分钟后自动关闭。",
+    "pt": "Escaneie o QR ou abra a URL no celular ou PC para escolher apps da Home e definir um fundo (URL ou envio de arquivo). O servidor fecha apos 10 minutos sem uso.",
+    "it": "Scansiona il QR o apri l'URL da telefono o PC per scegliere le app della Home e impostare uno sfondo (URL o caricamento). Il server si chiude dopo 10 minuti di inattivita.",
+    "ru": "Отсканируйте QR-код или откройте URL на телефоне или ПК, чтобы выбрать приложения Home и установить обои (ссылка или файл). Сервер отключается через 10 минут бездействия.",
+    "pl": "Zeskanuj kod QR lub otworz URL na telefonie albo komputerze, aby wybrac aplikacje ekranu glownego i ustawic tlo (link lub plik). Serwer wylacza sie po 10 minutach bezczynnosci.",
+    "fr": "Scannez le QR ou ouvrez l'URL sur votre telephone ou PC pour choisir les applis de l'accueil et definir un fond (lien ou fichier). Le serveur s'arrete apres 10 minutes d'inactivite."
   }
 }
