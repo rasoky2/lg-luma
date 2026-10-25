@@ -1638,19 +1638,20 @@ impl State {
                     }
                 }
                 let mut moved = false;
+                let mut current = self.preferences.favorites(&self.inventory.apps);
                 if index >= 2
-                    && let Some(position) = favorites.iter().position(|item| item == &id)
+                    && let Some(position) = current.iter().position(|item| item == &id)
                 {
                     let target = if index == 2 {
                         position.checked_sub(1)
-                    } else if position + 1 < favorites.len() {
+                    } else if position + 1 < current.len() {
                         Some(position + 1)
                     } else {
                         None
                     };
                     if let Some(other) = target {
-                        favorites.swap(position, other);
-                        self.preferences.favorites = Some(favorites.clone());
+                        current.swap(position, other);
+                        self.preferences.favorites = Some(current.clone());
                         moved = true;
                         self.notify(
                             self.preferences
