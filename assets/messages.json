@@ -1780,5 +1780,38 @@
     "ru": "Отсканируйте QR-код или откройте URL на телефоне или ПК, чтобы выбрать приложения Home и установить обои (ссылка или файл). Сервер отключается через 10 минут бездействия.",
     "pl": "Zeskanuj kod QR lub otworz URL na telefonie albo komputerze, aby wybrac aplikacje ekranu glownego i ustawic tlo (link lub plik). Serwer wylacza sie po 10 minutach bezczynnosci.",
     "fr": "Scannez le QR ou ouvrez l'URL sur votre telephone ou PC pour choisir les applis de l'accueil et definir un fond (lien ou fichier). Le serveur s'arrete apres 10 minutes d'inactivite."
+  },
+  "moveLeft": {
+    "en": "Move left",
+    "de": "Nach links",
+    "es": "Mover a la izquierda",
+    "zh": "向左移动",
+    "pt": "Mover para a esquerda",
+    "it": "Sposta a sinistra",
+    "ru": "Влево",
+    "pl": "W lewo",
+    "fr": "Vers la gauche"
+  },
+  "moveRight": {
+    "en": "Move right",
+    "de": "Nach rechts",
+    "es": "Mover a la derecha",
+    "zh": "向右移动",
+    "pt": "Mover para a direita",
+    "it": "Sposta a destra",
+    "ru": "Вправо",
+    "pl": "W prawo",
+    "fr": "Vers la droite"
+  },
+  "favoriteMoved": {
+    "en": "«{app}» moved",
+    "de": "«{app}» verschoben",
+    "es": "«{app}» movida",
+    "zh": "已移动「{app}」",
+    "pt": "«{app}» movido",
+    "it": "«{app}» spostata",
+    "ru": "«{app}» перемещено",
+    "pl": "«{app}» przeniesiona",
+    "fr": "«{app}» déplacée"
   }
 }

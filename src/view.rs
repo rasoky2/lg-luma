@@ -2535,7 +2535,15 @@ fn options(out: &mut Scene, state: &State, assets: &Assets, id: &str) {
         .lines(title, text(37.6, 500, -0.055).leading(1.1), 432.)
         .saturating_sub(1) as f32
         * 41.4;
-    let panel = Rect::new(680., 362.9 - extra / 2., 560., 354.2 + extra);
+    let favorite = state
+        .preferences
+        .favorites(&state.inventory.apps)
+        .iter()
+        .any(|item| item == id);
+    let hidden = state.preferences.hidden.iter().any(|item| item == id);
+    let extra_rows = if favorite { 2. * 76.8 } else { 0. };
+    let panel_height = 354.2 + extra + extra_rows;
+    let panel = Rect::new(680., (1080. - panel_height) / 2., 560., panel_height);
     out.modal = Some(panel);
     out.shadow(panel, 27.2, 120., 25., 0.47);
     out.draw.push(Draw::RoundedGradient(
@@ -2567,23 +2575,25 @@ fn options(out: &mut Scene, state: &State, assets: &Assets, id: &str) {
         out.border(close.inset(1.), 15.8, 2., WHITE);
     }
     out.control(Target::CloseDialog, close, false);
-    let favorite = state
-        .preferences
-        .favorites(&state.inventory.apps)
-        .iter()
-        .any(|item| item == id);
-    let hidden = state.preferences.hidden.iter().any(|item| item == id);
-    for (index, label) in [
-        if favorite {
-            language.t("removeFavorite")
-        } else {
-            language.t("addFavorite")
-        },
-        language.t(if hidden { "showApp" } else { "hideApp" }),
-    ]
-    .into_iter()
-    .enumerate()
-    {
+    let mut rows: Vec<(&str, &str)> = vec![
+        (
+            if favorite {
+                language.t("removeFavorite")
+            } else {
+                language.t("addFavorite")
+            },
+            if favorite { "heart-filled" } else { "heart" },
+        ),
+        (
+            language.t(if hidden { "showApp" } else { "hideApp" }),
+            if hidden { "eye" } else { "eye-off" },
+        ),
+    ];
+    if favorite {
+        rows.push((language.t("moveLeft"), "left"));
+        rows.push((language.t("moveRight"), "right"));
+    }
+    for (index, (label, icon)) in rows.into_iter().enumerate() {
         let rect = Rect::new(
             717.8,
             panel.y + 137.9 + extra + index as f32 * 76.8,
@@ -2603,13 +2613,7 @@ fn options(out: &mut Scene, state: &State, assets: &Assets, id: &str) {
         );
         out.icon(
             assets,
-            if index == 0 {
-                if favorite { "heart-filled" } else { "heart" }
-            } else if hidden {
-                "eye"
-            } else {
-                "eye-off"
-            },
+            icon,
             Rect::new(rect.x + 18.6, rect.y + 22.8, 21.6, 21.6),
             if focused { WHITE } else { c(0xe4e4e4, 0.61) },
         );

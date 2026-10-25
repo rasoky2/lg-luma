@@ -1637,7 +1637,29 @@ impl State {
                             .unwrap_or_else(|| self.first_content());
                     }
                 }
-                return if index < 2 {
+                let mut moved = false;
+                if index >= 2
+                    && let Some(position) = favorites.iter().position(|item| item == &id)
+                {
+                    let target = if index == 2 {
+                        position.checked_sub(1)
+                    } else if position + 1 < favorites.len() {
+                        Some(position + 1)
+                    } else {
+                        None
+                    };
+                    if let Some(other) = target {
+                        favorites.swap(position, other);
+                        self.preferences.favorites = Some(favorites.clone());
+                        moved = true;
+                        self.notify(
+                            self.preferences
+                                .language
+                                .format("favoriteMoved", &[("app", &title)]),
+                        );
+                    }
+                }
+                return if index < 2 || moved {
                     vec![Effect::Save]
                 } else {
                     vec![]
