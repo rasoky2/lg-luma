@@ -2007,6 +2007,7 @@ fn settings(out: &mut Scene, state: &State, assets: &Assets) {
         }
         WEATHER_SECTION => weather_settings(out, state, assets),
         SYSTEM_SECTION => {
+            let panel_on = state.web_panel.is_some();
             for (position, (index, title, icon)) in [
                 (
                     3,
@@ -2017,6 +2018,7 @@ fn settings(out: &mut Scene, state: &State, assets: &Assets) {
                     }),
                     "refresh",
                 ),
+                (7, language.t("webPanel"), "globe"),
                 (5, language.t("quitApp"), "power"),
             ]
             .into_iter()
@@ -2031,11 +2033,45 @@ fn settings(out: &mut Scene, state: &State, assets: &Assets) {
                         rect: Rect::new(640., 164.8 + position as f32 * 84. - s, 1120., 72.),
                         title,
                         icon: Some(icon),
-                        value: None,
+                        value: (index == 7)
+                            .then(|| language.t(if panel_on { "stateOn" } else { "stateOff" })),
                         description: None,
                         selected: false,
                         chevron: false,
                     },
+                );
+            }
+            if let Some(panel) = &state.web_panel {
+                let (matrix, size) = panel.matrix();
+                let side = 300.;
+                let frame = Rect::new(640., 164.8 + 3. * 84. + 12. - s, side, side);
+                out.shape(frame.inset(-14.), 14., c(0xffffff, 1.));
+                let cell = side / size as f32;
+                for (index, dark) in matrix.iter().enumerate() {
+                    if !dark {
+                        continue;
+                    }
+                    let column = (index % size) as f32;
+                    let line = (index / size) as f32;
+                    out.shape(
+                        Rect::new(frame.x + column * cell, frame.y + line * cell, cell, cell),
+                        0.,
+                        c(0x101010, 1.),
+                    );
+                }
+                out.text(
+                    panel.url(),
+                    Rect::new(frame.x + side + 48., frame.y, 720., 40.),
+                    text(21., 500, 0.),
+                    c(0xf5f5f5, 1.),
+                    false,
+                );
+                out.text(
+                    language.t("webPanelHint"),
+                    Rect::new(frame.x + side + 48., frame.y + 52., 680., 160.),
+                    text(16.8, 400, 0.).leading(1.5),
+                    c(0xf5f5f5, 0.72),
+                    false,
                 );
             }
         }

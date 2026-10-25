@@ -192,6 +192,8 @@ pub struct State {
     pub greeting_name_draft: String,
     pub input_name: String,
     pub recents: crate::recents::Recents,
+    /// LAN configuration panel, running only while this is `Some`.
+    pub web_panel: Option<crate::web::Panel>,
 }
 
 impl State {
@@ -225,6 +227,7 @@ impl State {
             greeting_name_draft: String::new(),
             input_name: String::new(),
             recents: crate::recents::Recents::default(),
+            web_panel: None,
         }
     }
 
@@ -1480,6 +1483,22 @@ impl State {
                         self.scroll = 0.;
                         if !self.preferences.reduced_motion {
                             self.panel_started = Some(Instant::now());
+                        }
+                        return vec![];
+                    }
+                    7 => {
+                        if let Some(panel) = self.web_panel.take() {
+                            panel.stop();
+                            self.notify("Panel web cerrado");
+                        } else {
+                            match crate::web::start(crate::web::Paths::webos()) {
+                                Ok(panel) => {
+                                    let url = panel.url().to_string();
+                                    self.web_panel = Some(panel);
+                                    self.notify(format!("Panel web abierto: {url}"));
+                                }
+                                Err(err) => self.error = Some(format!("Panel web: {err}")),
+                            }
                         }
                         return vec![];
                     }

@@ -27,6 +27,7 @@ mod view;
 mod weather;
 #[path = "weather-service.rs"]
 mod weather_service;
+mod web;
 #[cfg(all(feature = "webos", any(target_os = "linux", test)))]
 #[path = "webos-compat.rs"]
 mod webos_compat;

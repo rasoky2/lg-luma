@@ -1758,5 +1758,19 @@
     "ru": "Тестовая карточка для прокрутки; приложение не запускается.",
     "pl": "Karta testowa do przewijania; brak aplikacji do uruchomienia.",
     "fr": "Carte de test pour le défilement ; aucune application à lancer."
+  },
+  "webPanel": {
+    "en": "Web panel (QR)",
+    "es": "Panel web (QR)",
+    "de": "Web-Panel (QR)",
+    "pt": "Painel web (QR)",
+    "it": "Pannello web (QR)"
+  },
+  "webPanelHint": {
+    "en": "Scan the QR or open the URL on your phone/PC to choose Home apps and set a wallpaper (URL or upload). The server closes itself after 10 minutes idle.",
+    "es": "Escanea el QR o abre la URL en tu movil/PC para elegir las apps del inicio y poner un fondo (URL o subiendo un archivo). El servidor se cierra solo tras 10 minutos sin uso.",
+    "de": "QR scannen oder URL am Handy/PC oeffnen, um Home-Apps zu waehlen und ein Hintergrundbild zu setzen. Der Server beendet sich nach 10 Minuten ohne Zugriff.",
+    "pt": "Escaneie o QR ou abra a URL no celular/PC para escolher apps da Home e definir um fundo. O servidor fecha apos 10 minutos sem uso.",
+    "it": "Scansiona il QR o apri l'URL da telefono/PC per scegliere le app della Home e impostare uno sfondo. Il server si chiude dopo 10 minuti di inattivita."
   }
 }
