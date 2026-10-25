@@ -284,7 +284,8 @@ try {
   assert.equal(clockFocus.subpage, 'ClockFormat');
   assert.deepEqual(clockFocus.focus, { Choice: 1 });
   const system = await scenario('system-settings', 'settings,down,down,down,down,down,right,down');
-  assert.deepEqual(system.focus, { Setting: 5 });
+  assert.deepEqual(system.focus, { Setting: 7 });
+  assert.ok(system.ui_text.includes('Web panel (QR)'));
   assert.ok(system.ui_text.includes('Refresh apps & inputs'));
   assert.ok(system.ui_text.includes('Quit app'));
   // The exposed card fragments are real pointer targets, including after remote scrolling.
