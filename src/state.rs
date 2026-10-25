@@ -41,6 +41,7 @@ pub enum Target {
     App(String),
     Input(String),
     Browse,
+    EditHome,
     Filter(usize),
     ClearFilter,
     Search,
@@ -1666,6 +1667,17 @@ impl State {
                     vec![]
                 };
             }
+            Target::EditHome => {
+                if !matches!(self.focus, Target::App(_)) {
+                    let first = self.apps().first().map(|app| app.id.clone());
+                    if let Some(id) = first {
+                        self.focus = Target::App(id);
+                    }
+                }
+                self.options();
+                return vec![];
+            }
+
             Target::Key(index) => match KEYS[index] {
                 "Space" => self.text(" "),
                 "Delete" => self.delete(),

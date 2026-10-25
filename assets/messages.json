@@ -1813,5 +1813,16 @@
     "ru": "«{app}» перемещено",
     "pl": "«{app}» przeniesiona",
     "fr": "«{app}» déplacée"
+  },
+  "editHome": {
+    "en": "Edit Home",
+    "de": "Start bearbeiten",
+    "es": "Editar inicio",
+    "zh": "编辑首页",
+    "pt": "Editar Home",
+    "it": "Modifica Home",
+    "ru": "Изменить",
+    "pl": "Edytuj",
+    "fr": "Modifier"
   }
 }

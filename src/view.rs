@@ -853,6 +853,34 @@ fn home(out: &mut Scene, state: &State, assets: &Assets, now: OffsetDateTime) {
             true,
         );
     }
+    if state.moving.is_none() && !state.inventory.apps.is_empty() {
+        let label = language.t("editHome");
+        let style = text(14.4, 500, 0.);
+        let width = assets.width(label, style) + 96.;
+        let rect = Rect::new(1836. - width, 472. - s, width, 38.);
+        let focused = state.focus == Target::EditHome;
+        out.shape(rect, 19., c(0xffffff, if focused { 0.10 } else { 0.055 }));
+        out.border(
+            rect,
+            19.,
+            1.,
+            c(0xffffff, if focused { 0.22 } else { 0.10 }),
+        );
+        out.icon(
+            assets,
+            "grid",
+            Rect::new(rect.x + 18., rect.y + 9.6, 19., 19.),
+            if focused { WHITE } else { c(0xf5f5f5, 0.75) },
+        );
+        out.text(
+            label,
+            Rect::new(rect.x + 46., rect.y + 10.6, width - 58., 22.),
+            style,
+            WHITE,
+            false,
+        );
+        out.control(Target::EditHome, rect, false);
+    }
     let apps = state.apps();
     let names = state.preferences.show_home_names;
     let mut grid_height = FACE_HEIGHT;
