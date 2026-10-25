@@ -1491,7 +1491,13 @@ impl State {
                             panel.stop();
                             self.notify("Panel web cerrado");
                         } else {
-                            match crate::web::start(crate::web::Paths::webos()) {
+                            let apps: Vec<(String, String)> = self
+                                .inventory
+                                .apps
+                                .iter()
+                                .map(|app| (app.id.clone(), app.title.clone()))
+                                .collect();
+                            match crate::web::start(crate::web::Paths::webos(), apps) {
                                 Ok(panel) => {
                                     let url = panel.url().to_string();
                                     self.web_panel = Some(panel);

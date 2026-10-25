@@ -6,7 +6,7 @@
 //! from Settings -> "Web panel / QR", shows a QR on the TV and stops itself
 //! after a period without requests.
 
-use std::io::{Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, TcpListener, TcpStream, UdpSocket};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -105,7 +105,8 @@ fn qr_matrix(text: &str) -> Option<(Vec<bool>, usize)> {
     Some((matrix, size))
 }
 
-pub fn start(paths: Paths) -> Result<Panel, String> {
+pub fn start(paths: Paths, apps: Vec<(String, String)>) -> Result<Panel, String> {
+    note("panel: starting");
     let ip = local_ip().ok_or("no LAN address found")?;
     let listener = TcpListener::bind((Ipv4Addr::UNSPECIFIED, PORT))
         .map_err(|e| format!("cannot bind port {PORT}: {e}"))?;
@@ -121,10 +122,12 @@ pub fn start(paths: Paths) -> Result<Panel, String> {
 
     let worker = Worker {
         paths,
+        apps,
         token,
         stop: Arc::clone(&stop),
     };
     thread::spawn(move || worker.run(listener));
+    note(&format!("panel: listening on {url}"));
 
     Ok(Panel {
         url,
@@ -136,6 +139,7 @@ pub fn start(paths: Paths) -> Result<Panel, String> {
 
 struct Worker {
     paths: Paths,
+    apps: Vec<(String, String)>,
     token: String,
     stop: Arc<AtomicBool>,
 }
@@ -185,7 +189,7 @@ impl Worker {
                 PAGE.as_bytes(),
             ),
             ("GET", "/api/apps") if authorized => {
-                let body = apps_json();
+                let body = self.apps_payload();
                 respond(&mut stream, 200, "application/json", body.as_bytes())
             }
             ("POST", "/api/apps") if authorized => match self.save_apps(&request.body) {
@@ -385,55 +389,63 @@ fn set_background(preferences: &Path, slot: &str) -> Result<(), String> {
     .map_err(|e| e.to_string())
 }
 
-fn restart_home() {
-    let _ = Command::new("pkill").args(["-x", "luma"]).status();
-    thread::sleep(Duration::from_millis(1500));
-    let _ = Command::new("luna-send")
-        .args([
-            "-n",
-            "1",
-            "luna://com.webos.applicationManager/launch",
-            "{\"id\":\"com.webos.app.home\"}",
-        ])
-        .status();
+fn note(message: &str) {
+    if let Ok(mut file) = std::fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("/tmp/luma-panel.log")
+    {
+        let _ = writeln!(file, "{message}");
+    }
 }
 
-fn apps_json() -> String {
-    let output = Command::new("luna-send")
-        .args([
-            "-n",
-            "1",
-            "-f",
-            "luna://com.webos.applicationManager/listApps",
-            "{}",
-        ])
-        .output();
-    let apps: Vec<serde_json::Value> = match output {
-        Ok(out) => {
-            let text = String::from_utf8_lossy(&out.stdout).to_string();
-            let value: serde_json::Value = serde_json::from_str(&text).unwrap_or_default();
-            value
-                .get("payload")
-                .and_then(|p| p.get("apps"))
-                .and_then(|a| a.as_array())
-                .map(|apps| {
-                    apps.iter()
-                        .filter_map(|app| {
-                            let id = app.get("id")?.as_str()?.to_string();
-                            let title = app
-                                .get("title")
-                                .and_then(|t| t.as_str())
-                                .unwrap_or(&id)
-                                .to_string();
-                            Some(serde_json::json!({"id": id, "title": title}))
-                        })
-                        .collect()
-                })
-                .unwrap_or_default()
+fn restart_home() {
+    note("panel: restarting Home");
+    let _ = Command::new("pkill").args(["-x", "luma"]).status();
+    thread::sleep(Duration::from_millis(1500));
+    for binary in ["/usr/bin/luna-send", "luna-send"] {
+        match Command::new(binary)
+            .args([
+                "-n",
+                "1",
+                "luna://com.webos.applicationManager/launch",
+                "{\"id\":\"com.webos.app.home\"}",
+            ])
+            .status()
+        {
+            Ok(status) => {
+                note(&format!("panel: launch via {binary} -> {status}"));
+                break;
+            }
+            Err(err) => note(&format!("panel: {binary} failed: {err}")),
         }
-        Err(_) => Vec::new(),
-    };
-    serde_json::json!({ "apps": apps }).to_string()
+    }
+}
+
+impl Worker {
+    fn apps_payload(&self) -> String {
+        let favorites: Vec<String> = std::fs::read_to_string(&self.paths.preferences)
+            .ok()
+            .and_then(|text| serde_json::from_str::<serde_json::Value>(&text).ok())
+            .and_then(|value| {
+                value
+                    .get("favorites")
+                    .and_then(|v| v.as_array())
+                    .map(|ids| {
+                        ids.iter()
+                            .filter_map(|id| id.as_str())
+                            .map(str::to_string)
+                            .collect()
+                    })
+            })
+            .unwrap_or_default();
+        let apps: Vec<serde_json::Value> = self
+            .apps
+            .iter()
+            .map(|(id, title)| serde_json::json!({"id": id, "title": title}))
+            .collect();
+        serde_json::json!({ "apps": apps, "favorites": favorites }).to_string()
+    }
 }
 
 fn json_message(message: &str, ok: bool) -> String {
@@ -442,7 +454,7 @@ fn json_message(message: &str, ok: bool) -> String {
 
 fn read_request(stream: &mut TcpStream) -> Option<Request> {
     let mut buffer = Vec::new();
-    let mut chunk = [0u8; 4096];
+    let mut chunk = [0u8; 8192];
     let header_end;
     loop {
         let read = stream.read(&mut chunk).ok()?;
@@ -458,6 +470,7 @@ fn read_request(stream: &mut TcpStream) -> Option<Request> {
             return None;
         }
     }
+
     let head = String::from_utf8_lossy(&buffer[..header_end]).to_string();
     let mut lines = head.lines();
     let mut first = lines.next()?.split_whitespace();
@@ -467,32 +480,82 @@ fn read_request(stream: &mut TcpStream) -> Option<Request> {
         Some((p, q)) => (p.to_string(), q.to_string()),
         None => (target, String::new()),
     };
-    let mut content_length = 0;
+
+    let mut content_length = 0usize;
+    let mut chunked = false;
+    let mut expect_continue = false;
     for line in lines {
-        if let Some((name, value)) = line.split_once(':')
-            && name.eq_ignore_ascii_case("content-length")
-        {
-            content_length = value.trim().parse().unwrap_or(0);
+        if let Some((name, value)) = line.split_once(':') {
+            let name = name.trim();
+            let value = value.trim();
+            if name.eq_ignore_ascii_case("content-length") {
+                content_length = value.parse().unwrap_or(0);
+            } else if name.eq_ignore_ascii_case("transfer-encoding") {
+                chunked = value.to_ascii_lowercase().contains("chunked");
+            } else if name.eq_ignore_ascii_case("expect") {
+                expect_continue = value.to_ascii_lowercase().contains("100-continue");
+            }
         }
     }
     if content_length > MAX_BODY {
         return None;
     }
-    let mut body = buffer[header_end + 4..].to_vec();
-    while body.len() < content_length {
-        let read = stream.read(&mut chunk).ok()?;
-        if read == 0 {
-            break;
-        }
-        body.extend_from_slice(&chunk[..read]);
+
+    if expect_continue {
+        let _ = stream.write_all(b"HTTP/1.1 100 Continue\r\n\r\n");
+        let _ = stream.flush();
     }
-    body.truncate(content_length);
+
+    let leftover = buffer[header_end + 4..].to_vec();
+    let mut reader = BufReader::new(std::io::Cursor::new(leftover).chain(stream));
+    let body = if chunked {
+        read_chunked(&mut reader)?
+    } else if content_length > 0 {
+        let mut body = vec![0u8; content_length];
+        reader.read_exact(&mut body).ok()?;
+        body
+    } else {
+        Vec::new()
+    };
+    if body.len() > MAX_BODY {
+        return None;
+    }
+
     Some(Request {
         method,
         path,
         query,
         body,
     })
+}
+
+fn read_chunked<R: Read>(reader: &mut BufReader<R>) -> Option<Vec<u8>> {
+    let mut body = Vec::new();
+    loop {
+        let mut line = String::new();
+        reader.read_line(&mut line).ok()?;
+        let hex = line.trim().split(';').next()?.trim();
+        let size = usize::from_str_radix(hex, 16).ok()?;
+        if size == 0 {
+            loop {
+                let mut trailer = String::new();
+                let read = reader.read_line(&mut trailer).ok()?;
+                if read == 0 || trailer.trim().is_empty() {
+                    break;
+                }
+            }
+            break;
+        }
+        if body.len() + size > MAX_BODY {
+            return None;
+        }
+        let mut part = vec![0u8; size];
+        reader.read_exact(&mut part).ok()?;
+        body.extend_from_slice(&part);
+        let mut crlf = [0u8; 2];
+        reader.read_exact(&mut crlf).ok()?;
+    }
+    Some(body)
 }
 
 fn find_header_end(buffer: &[u8]) -> Option<usize> {
@@ -625,7 +688,7 @@ async function load(){
   box.innerHTML = '';
   data.apps.sort((a,b)=>a.title.localeCompare(b.title)).forEach(app=>{
     const l = document.createElement('label'); l.className='app';
-    const c = document.createElement('input'); c.type='checkbox'; c.value=app.id;
+    const c = document.createElement('input'); c.type='checkbox'; c.value=app.id; if((data.favorites||[]).indexOf(app.id)>=0) c.checked = true;
     const s = document.createElement('span'); s.textContent = app.title || app.id;
     l.appendChild(c); l.appendChild(s); box.appendChild(l);
     c.addEventListener('change', counter);
